@@ -13,8 +13,6 @@
     <a href="skills" class="bg-[#ff9500] text-black font-semibold px-6 py-3 rounded-md hover:bg-[#ffb347] transition">Let's Talk →</a>
   </div>
 
-<a href="/skills" class="block w-72 h-72 rounded-full border-4 border-[#ff9500] overflow-hidden hover:shadow-[0_0_20px_#ff9500] hover:scale-110 transition-all duration-300">
-  <img src="{{ asset('img/mutma.jpg') }}" alt="Mutmainnah" class="w-full h-full object-cover">
-</a>
+@include('partials.avatar')
 </div> 
 @endsection

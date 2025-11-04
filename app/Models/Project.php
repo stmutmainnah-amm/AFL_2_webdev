@@ -20,7 +20,6 @@ class Project extends Model
         'slug',
         'description',
         'url',
-        'image',
         'tech_stack',
     ];
 
@@ -66,5 +65,21 @@ class Project extends Model
                 $project->tech_stack = [$faker->word, $faker->word, 'laravel'];
             }
         });
+    }
+
+    /**
+     * The owner/author of the project (user).
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Comments for the project.
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 }

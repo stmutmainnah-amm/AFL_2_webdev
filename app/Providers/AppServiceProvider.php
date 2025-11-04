@@ -19,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register console commands when running in the console
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \App\Console\Commands\AssignProjectUsers::class,
+            ]);
+        }
     }
 }
