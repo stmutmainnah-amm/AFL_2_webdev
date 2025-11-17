@@ -37,34 +37,60 @@ class Project extends Model
      */
     protected static function booted()
     {
-        static::creating(function ($project) {
-            $faker = \Faker\Factory::create();
-
+        static::creating(function (Project $project) {
             if (empty($project->title)) {
-                $project->title = $faker->sentence(3);
+                $project->title = 'Untitled Project';
             }
 
             if (empty($project->slug)) {
-                $project->slug = Str::slug($project->title . '-' . $faker->unique()->word);
+                $project->slug = static::uniqueSlug($project->title);
             }
 
-            if (empty($project->description)) {
-                $project->description = $faker->paragraph();
-            }
-
-            if (empty($project->url)) {
-                $project->url = $faker->url();
-            }
-
-            if (empty($project->image)) {
-                // use a placeholder path; you can change to a public image you have
-                $project->image = 'img/default.jpg';
-            }
-
-            if (empty($project->tech_stack)) {
-                $project->tech_stack = [$faker->word, $faker->word, 'laravel'];
+            if (is_string($project->tech_stack)) {
+                $decoded = json_decode($project->tech_stack, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $project->tech_stack = array_values(array_filter(array_map('strval', $decoded)));
+                }
             }
         });
+
+        static::updating(function (Project $project) {
+            if ($project->isDirty('slug')) {
+                $project->slug = static::uniqueSlug($project->slug, $project->getKey());
+            }
+
+            if ($project->isDirty('title') && empty($project->slug)) {
+                $project->slug = static::uniqueSlug($project->title, $project->getKey());
+            }
+
+            if (is_string($project->tech_stack)) {
+                $decoded = json_decode($project->tech_stack, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $project->tech_stack = array_values(array_filter(array_map('strval', $decoded)));
+                }
+            }
+        });
+    }
+
+    /**
+     * Generate a unique slug based on the provided source string.
+     */
+    public static function uniqueSlug(?string $source, ?int $ignoreId = null): string
+    {
+        $base = Str::slug($source ?? '') ?: Str::random(8);
+        $candidate = $base;
+        $suffix = 2;
+
+        while (
+            static::where('slug', $candidate)
+                ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+                ->exists()
+        ) {
+            $candidate = $base.'-'.$suffix;
+            $suffix++;
+        }
+
+        return $candidate;
     }
 
     /**
